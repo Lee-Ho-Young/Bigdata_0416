@@ -179,8 +179,54 @@ Found 66 items
 ```
 
 **3. Bonus**
+
+A. Upload the devicestatus.txt file to HDFS.
+
 ```
 
+```
+
+B. Determine which delimiter to use (hint: the character at
+position 19 is the first use of the delimiter).
+
+```
+
+```
+
+C. Filter out any records which do not parse correctly (hint: each
+record should have exactly 14 values).
+
+```
+
+```
+
+D. Extract the date (first field), model (second field), device ID (third
+field), and latitude and longitude (13th and 14th fields
+respectively).
+
+```
+
+```
+
+E. The second field contains the device manufacturer and model
+name (such as Ronin S2). Split this field by spaces to separate
+the manufacturer from the model (for example, manufacturer
+Ronin, model S2). Keep just the manufacturer name.
+
+```
+
+```
+
+F. Save the extracted data to comma-delimited text files in the
+/loudacre/devicestatus_etl directory on HDFS.
+
+```
+
+```
+
+G. Confirm that the data in the file(s) was saved correctly.
+
+```
 
 ```
 
