@@ -1,6 +1,6 @@
 **통신QM Unit 이호영 선임(09340)**
 
-<Exercise. Process Data Files with Apache Spark>
+<Lab2. Process Data Files with Apache Spark>
 -------------------------
 **Parsing XML file with Spark**
 
@@ -157,8 +157,6 @@ Found 66 items
 
 ```
 > rawRDD = sc.wholeTextFiles("/loudacre/activations/")
-> rawRDD.take(2)
-
 > rawRDD1 = rawRDD.flatMapValues(lambda line: getActivations(line))
 > rawRDD1.take(2)
 [(u'hdfs://localhost:8020/loudacre/activations/2008-10.xml',
@@ -268,12 +266,13 @@ D. Extract the date (first field), model (second field), device ID (third
 field), and latitude and longitude (13th and 14th fields
 respectively).
 
-
 ```
 # rowRDD2 : Parsed with Comma + Unparsed data
 # rowRDD3 : Parsing the unparsed data within rowRDD2 with | delimiter
 # rowRDD4 : "," and "|" parsed data + Unparsed data
 # rowRDD6 : All parsed data with "," "|" "/"
+# rowRDD7 : Extract required data fields into one String
+# rowRDD8 : Transform String data into array form
 
 > rowRDD4 = rowRDD2.filter(lambda line: len(line) == 14).union(rowRDD3)
 > rowRDD4.filter(lambda line: len(line) != 14).take(2)
@@ -319,7 +318,19 @@ respectively).
  > rowRDD6.filter(lambda line: len(line) != 14).count()
  0
  
- > rowRDD7 = rowRDD6.map(lambda line: line[0] + line[1])
+ > rowRDD7 = rowRDD6.map(lambda line: line[0] + "," + line[1] + "," + line[2] + "," + line[12] + "," + line[13])
+ > rowRDD8 = rowRDD7.map(lambda line: line.split(","))
+ > rowRDD8.take(2)
+ [[u'2014-03-15:10:10:20',
+  u'Sorrento F41L',
+  u'8cc3b47e-bd01-4482-b500-28f2342679af',
+  u'33.6894754264',
+  u'-117.543308253'],
+ [u'2014-03-15:10:10:20',
+  u'Sorrento F41L',
+  u'707daba1-5640-4d60-a6d9-1d6fa0645be0',
+  u'39.3635186767',
+  u'-119.400334708']]
 ```
 
 E. The second field contains the device manufacturer and model
@@ -328,7 +339,28 @@ the manufacturer from the model (for example, manufacturer
 Ronin, model S2). Keep just the manufacturer name.
 
 ```
-
+> def processData(line):
+    temp = line[1].split(' ')
+    line[1] = temp[0]
+    return line
+        
+> rowRDD9 = rowRDD8.map(lambda line: processData(line))
+> rowRDD9.take(3)
+[[u'2014-03-15:10:10:20',
+  u'Sorrento',
+  u'8cc3b47e-bd01-4482-b500-28f2342679af',
+  u'33.6894754264',
+  u'-117.543308253'],
+ [u'2014-03-15:10:10:20',
+  u'Sorrento',
+  u'707daba1-5640-4d60-a6d9-1d6fa0645be0',
+  u'39.3635186767',
+  u'-119.400334708'],
+ [u'2014-03-15:10:10:20',
+  u'Ronin',
+  u'db66fe81-aa55-43b4-9418-fc6e7a00f891',
+  u'33.1913581092',
+  u'-116.448242643']]
 ```
 
 F. Save the extracted data to comma-delimited text files in the
@@ -347,7 +379,7 @@ G. Confirm that the data in the file(s) was saved correctly.
 
 
 
-<Exercise. Use Pair RDDs to Join Two Datasets>
+<Lab3. Use Pair RDDs to Join Two Datasets>
 -------------------------
 
 **1. Parsing weblogs to find out visit frequency by user_id**
@@ -483,7 +515,7 @@ defaultdict(<type 'int'>, {128: 9, 2: 7239, 3: 36, 4: 4155, 5: 26, 6: 2162, 7: 1
 **4. Bonus**
 
 
-<Exercise. Write and Run an Apache Spark Application>
+<Lab4. Write and Run an Apache Spark Application>
 -------------------------
 
 **1. /home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py**
@@ -544,4 +576,26 @@ if __name__ == "__main__":
 64978
 ###################################################
 ```
+
+
+
+<Lab6. View Jobs and Stages in the Spark Application UI>
+-------------------------
+
+**1. /home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py**
+
+
+<Lab7. Persist an RDD>
+-------------------------
+
+```
+
+```
+
+**1. /home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py**
+
+
+
+pyspark --master 'local[3]'
+
 
