@@ -183,33 +183,143 @@ Found 66 items
 A. Upload the devicestatus.txt file to HDFS.
 
 ```
-[training@localhost data]$ hdfs dfs -put ./devicestatus.txt /loudacre/device
+[training@localhost data]$ hdfs dfs -put devicestatus.txt /loudacre/device/
 [training@localhost data]$ hdfs dfs -ls /loudacre/device
--rw-rw-rw-   1 training supergroup   13954723 2019-04-15 20:50 /loudacre/device
+Found 1 items
+-rw-rw-rw-   1 training supergroup   13954723 2019-04-15 20:58 /loudacre/device/devicestatus.txt
 ```
 
 B. Determine which delimiter to use (hint: the character at
 position 19 is the first use of the delimiter).
 
-Try to split the file with "," first
-
 ```
+#Try to split the file with "," first
+> files = "/loudacre/device/devicestatus.txt"
+> rowRDD1 = sc.textFile(files)
+> rowRDD1.take(2)
+[u'2014-03-15:10:10:20,Sorrento F41L,8cc3b47e-bd01-4482-b500-28f2342679af,7,24,39,enabled,disabled,connected,55,67,12,33.6894754264,-117.543308253',
+ u'2014-03-15:10:10:20|MeeToo 1.0|ef8c7564-0a1a-4650-a655-c8bbd5f8f943|0|31|63|70|39|27|enabled|enabled|enabled|37.4321088904|-121.485029632']
 
+> rowRDD2 = rowRDD1.map(lambda line: line.split(","))
+> rowRDD2.take(2)
+[[u'2014-03-15:10:10:20',
+  u'Sorrento F41L',
+  u'8cc3b47e-bd01-4482-b500-28f2342679af',
+  u'7',
+  u'24',
+  u'39',
+  u'enabled',
+  u'disabled',
+  u'connected',
+  u'55',
+  u'67',
+  u'12',
+  u'33.6894754264',
+  u'-117.543308253'],
+ [u'2014-03-15:10:10:20|MeeToo 1.0|ef8c7564-0a1a-4650-a655-c8bbd5f8f943|0|31|63|70|39|27|enabled|enabled|enabled|37.4321088904|-121.485029632']]
 ```
 
 C. Filter out any records which do not parse correctly (hint: each
 record should have exactly 14 values).
 
 ```
-
+> notCommaRDD = rowRDD2.filter(lambda line: len(line) != 14)
+> notCommaRDD.take(2)
+[[u'2014-03-15:10:10:20|MeeToo 1.0|ef8c7564-0a1a-4650-a655-c8bbd5f8f943|0|31|63|70|39|27|enabled|enabled|enabled|37.4321088904|-121.485029632'],
+ [u'2014-03-15:10:10:20|MeeToo 1.0|23eba027-b95a-4729-9a4b-a3cca51c5548|0|20|21|86|54|34|enabled|enabled|enabled|39.4378908349|-120.938978486']]
+  
+> def ListMap(line):
+    for arr in line:
+        return arr.split("|")
+        
+> rowRDD3 = notCommaRDD.map(lambda line: ListMap(line))
+> rowRDD3.take(2)
+[[u'2014-03-15:10:10:20',
+  u'MeeToo 1.0',
+  u'ef8c7564-0a1a-4650-a655-c8bbd5f8f943',
+  u'0',
+  u'31',
+  u'63',
+  u'70',
+  u'39',
+  u'27',
+  u'enabled',
+  u'enabled',
+  u'enabled',
+  u'37.4321088904',
+  u'-121.485029632'],
+ [u'2014-03-15:10:10:20',
+  u'MeeToo 1.0',
+  u'23eba027-b95a-4729-9a4b-a3cca51c5548',
+  u'0',
+  u'20',
+  u'21',
+  u'86',
+  u'54',
+  u'34',
+  u'enabled',
+  u'enabled',
+  u'enabled',
+  u'39.4378908349',
+  u'-120.938978486']]
 ```
 
 D. Extract the date (first field), model (second field), device ID (third
 field), and latitude and longitude (13th and 14th fields
 respectively).
 
-```
 
+```
+# rowRDD2 : Parsed with Comma + Unparsed data
+# rowRDD3 : Parsing the unparsed data within rowRDD2 with | delimiter
+# rowRDD4 : "," and "|" parsed data + Unparsed data
+# rowRDD6 : All parsed data with "," "|" "/"
+
+> rowRDD4 = rowRDD2.filter(lambda line: len(line) == 14).union(rowRDD3)
+> rowRDD4.filter(lambda line: len(line) != 14).take(2)
+[[u'2014-03-15:10:10:20/Titanic 2400/b4a15931-9a69-469f-9823-a45974472c51/21/96/63/38/11/0/enabled/disabled/enabled/38.1653163975/-122.151608378'],
+ [u'2014-03-15:10:10:20/Titanic 2000/08bf61ec-f224-4e8c-a754-1ed381329ed4/43/80/28/61/20/0/enabled/enabled/connected/45.326414382/-117.807811103']]
+
+> def ListMap2(line):
+    for arr in line:
+        return arr.split("/")
+
+> rowRDD5 = rowRDD4.filter(lambda line: len(line) != 14).map(lambda line: ListMap2(line))
+> rowRDD5.take(2)
+[[u'2014-03-15:10:10:20',
+  u'Titanic 2400',
+  u'b4a15931-9a69-469f-9823-a45974472c51',
+  u'21',
+  u'96',
+  u'63',
+  u'38',
+  u'11',
+  u'0',
+  u'enabled',
+  u'disabled',
+  u'enabled',
+  u'38.1653163975',
+  u'-122.151608378'],
+ [u'2014-03-15:10:10:20',
+  u'Titanic 2000',
+  u'08bf61ec-f224-4e8c-a754-1ed381329ed4',
+  u'43',
+  u'80',
+  u'28',
+  u'61',
+  u'20',
+  u'0',
+  u'enabled',
+  u'enabled',
+  u'connected',
+  u'45.326414382',
+  u'-117.807811103']]
+ 
+ > rowRDD6 = rowRDD4.filter(lambda line: len(line) == 14).union(rowRDD5)
+ > rowRDD6.filter(lambda line: len(line) != 14).count()
+ 0
+ 
+ > rowRDD7 = rowRDD6.map(lambda line: line[0] + line[1])
 ```
 
 E. The second field contains the device manufacturer and model
