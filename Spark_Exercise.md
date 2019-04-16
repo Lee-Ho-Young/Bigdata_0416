@@ -599,24 +599,16 @@ if __name__ == "__main__":
 ```
 
 
+<Lab5. Configure an Apache Spark Application>
+-------------------------
+
 
 <Lab6. View Jobs and Stages in the Spark Application UI>
 -------------------------
-
-**1. /home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py**
 
 
 <Lab7. Persist an RDD>
 -------------------------
 
-```
-
-```
-
-**1. /home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py**
-
-
-
-pyspark --master 'local[3]'
 
 
