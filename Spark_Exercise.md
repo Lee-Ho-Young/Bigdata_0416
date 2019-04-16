@@ -487,6 +487,7 @@ defaultdict(<type 'int'>, {128: 9, 2: 7239, 3: 36, 4: 4155, 5: 26, 6: 2162, 7: 1
 -------------------------
 
 **1. /home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py**
+
 ```
 import sys
 from pyspark import SparkContext
@@ -498,11 +499,18 @@ if __name__ == "__main__":
 
     # Replace this line with your code:   
     sc = SparkContext()
+    sc.setLogLevel("ERROR")
+    logfiles = sys.argv[1]
 
-    logfiles="/loudacre/weblogs/*"
+    print("###################################################")
+    print(logfiles)
+    print("###################################################")
+
     logsRDD = sc.textFile(logfiles)
-    logsRDD.filter(lambda line: ".jpg" in line).count()
-
+    cnt = logsRDD.filter(lambda line: ".jpg" in line).count()
+    print("###################################################")
+    print(cnt)
+    print("###################################################")
     sc.stop()
 ```
 
@@ -513,4 +521,27 @@ if __name__ == "__main__":
 ```
 > spark-submit /home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py /loudacre/weblogs/*
 
+...
+19/04/15 22:30:35 WARN util.Utils: Service 'SparkUI' could not bind on port 4040. Attempting port 4041.
+19/04/15 22:30:35 INFO server.Server: jetty-8.y.z-SNAPSHOT
+19/04/15 22:30:35 INFO server.AbstractConnector: Started SelectChannelConnector@0.0.0.0:4041
+19/04/15 22:30:35 INFO util.Utils: Successfully started service 'SparkUI' on port 4041.
+19/04/15 22:30:35 INFO ui.SparkUI: Started SparkUI at http://192.168.2.146:4041
+19/04/15 22:30:35 INFO util.Utils: Copying /home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py to /tmp/spark-240ec17a-4a9c-4816-9d2d-29443b93fe7e/userFiles-5a18d278-666f-4478-8402-999e011bc089/CountJPGs.py
+19/04/15 22:30:35 INFO spark.SparkContext: Added file file:/home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py at file:/home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py with timestamp 1555392635860
+19/04/15 22:30:35 INFO executor.Executor: Starting executor ID driver on host localhost
+19/04/15 22:30:36 INFO util.Utils: Successfully started service 'org.apache.spark.network.netty.NettyBlockTransferService' on port 34119.
+19/04/15 22:30:36 INFO netty.NettyBlockTransferService: Server created on 34119
+19/04/15 22:30:36 INFO storage.BlockManagerMaster: Trying to register BlockManager
+19/04/15 22:30:36 INFO storage.BlockManagerMasterEndpoint: Registering block manager localhost:34119 with 208.8 MB RAM, BlockManagerId(driver, localhost, 34119)
+19/04/15 22:30:36 INFO storage.BlockManagerMaster: Registered BlockManager
+19/04/15 22:30:36 WARN shortcircuit.DomainSocketFactory: The short-circuit local reads feature cannot be used because libhadoop cannot be loaded.
+19/04/15 22:30:37 INFO scheduler.EventLoggingListener: Logging events to hdfs:///user/spark/applicationHistory/local-1555392635937
+###################################################
+/loudacre/weblogs/*
+###################################################
+###################################################
+64978
+###################################################
 ```
+
