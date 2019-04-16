@@ -177,7 +177,9 @@ Found 66 items
 ```
 
 **3. Bonus**
-
+```diff
+- Important Exercise
+```
 A. Upload the devicestatus.txt file to HDFS.
 
 ```
@@ -530,12 +532,6 @@ defaultdict(<type 'int'>, {128: 9, 2: 7239, 3: 36, 4: 4155, 5: 26, 6: 2162, 7: 1
 > joinRDD2.take(2)
 
 ```
-
-```diff
-+ this will be highlighted in green
-- this will be highlighted in red
-```
-
 
 **4. Bonus**
 
