@@ -183,11 +183,15 @@ Found 66 items
 A. Upload the devicestatus.txt file to HDFS.
 
 ```
-
+[training@localhost data]$ hdfs dfs -put ./devicestatus.txt /loudacre/device
+[training@localhost data]$ hdfs dfs -ls /loudacre/device
+-rw-rw-rw-   1 training supergroup   13954723 2019-04-15 20:50 /loudacre/device
 ```
 
 B. Determine which delimiter to use (hint: the character at
 position 19 is the first use of the delimiter).
+
+Try to split the file with "," first
 
 ```
 
