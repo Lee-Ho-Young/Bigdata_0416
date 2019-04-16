@@ -531,7 +531,10 @@ defaultdict(<type 'int'>, {128: 9, 2: 7239, 3: 36, 4: 4155, 5: 26, 6: 2162, 7: 1
 
 ```
 
-https://placehold.it/150/ffffff/ff0000?text=Bonus~
+```diff
++ this will be highlighted in green
+- this will be highlighted in red
+```
 
 
 **4. Bonus**
