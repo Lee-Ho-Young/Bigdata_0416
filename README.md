@@ -7,4 +7,4 @@
 *Name : 이호영*
 
 
-![Alt text](https://github.com/Lee-Ho-Young/Bigdata_0416/picture.png)
+![Alt text](https://github.com/Lee-Ho-Young/Bigdata_0416/blob/master/picture.png)
