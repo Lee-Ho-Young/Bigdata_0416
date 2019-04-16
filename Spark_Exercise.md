@@ -179,6 +179,12 @@ Found 66 items
 ```
 
 **3. Bonus**
+```
+
+
+```
+
+
 
 
 <Exercise. Use Pair RDDs to Join Two Datasets>
@@ -309,10 +315,42 @@ defaultdict(<type 'int'>, {128: 9, 2: 7239, 3: 36, 4: 4155, 5: 26, 6: 2162, 7: 1
 36848 6 Aaron Hutson
 
 > joinRDD2 = joinRDD1
-  .map(lambda (k,(v1,v2)): k + " " + str(raw_input(v2)) + " " + v1.split(",")[3] + " " + v1.split(",")[4])
+  .map(lambda (k,(v1,v2)): k + " " + str(v2) + " " + v1.split(",")[3] + " " + v1.split(",")[4])
 > joinRDD2.take(2)
 
 ```
 
 **4. Bonus**
 
+
+<Exercise. Write and Run an Apache Spark Application>
+-------------------------
+
+**1. /home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py**
+```
+import sys
+from pyspark import SparkContext
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print >> sys.stderr, "Usage: CountJPGs.py <logfile>"
+        exit(-1)
+
+    # Replace this line with your code:   
+    sc = SparkContext()
+
+    logfiles="/loudacre/weblogs/*"
+    logsRDD = sc.textFile(logfiles)
+    logsRDD.filter(lambda line: ".jpg" in line).count()
+
+    sc.stop()
+```
+
+**2. Change jupyter setting to normal pyspark**
+
+**3. Running Program**
+
+```
+> spark-submit /home/training/training_materials/devsh/exercises/spark-application/CountJPGs.py /loudacre/weblogs/*
+
+```
