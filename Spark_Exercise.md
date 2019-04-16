@@ -367,17 +367,36 @@ F. Save the extracted data to comma-delimited text files in the
 /loudacre/devicestatus_etl directory on HDFS.
 
 ```
-
+> commaTextRDD = rowRDD9.map(lambda line: line[0] + "," + line[1] + "," + line[2] + "," + line[3] + "," + line[4])
+> commaTextRDD.take(2)
+[u'2014-03-15:10:10:20,Sorrento,8cc3b47e-bd01-4482-b500-28f2342679af,33.6894754264,-117.543308253',
+ u'2014-03-15:10:10:20,Sorrento,707daba1-5640-4d60-a6d9-1d6fa0645be0,39.3635186767,-119.400334708']
+ 
+> commaTextRDD.saveAsTextFile("/loudacre/devicestatus_etl/")
 ```
 
 G. Confirm that the data in the file(s) was saved correctly.
 
 ```
+[training@localhost spark-etl]$ hdfs dfs -ls /loudacre/devicestatus_etl/
+Found 5 items
+-rw-rw-rw-   1 training supergroup          0 2019-04-16 01:23 /loudacre/devicestatus_etl/_SUCCESS
+-rw-rw-rw-   1 training supergroup    6076596 2019-04-16 01:23 /loudacre/devicestatus_etl/part-00000
+-rw-rw-rw-   1 training supergroup    1245363 2019-04-16 01:23 /loudacre/devicestatus_etl/part-00001
+-rw-rw-rw-   1 training supergroup          0 2019-04-16 01:23 /loudacre/devicestatus_etl/part-00002
+-rw-rw-rw-   1 training supergroup    1912147 2019-04-16 01:23 /loudacre/devicestatus_etl/part-00003
 
+[training@localhost spark-etl]$ hdfs dfs -cat /loudacre/devicestatus_etl/part-00000
+...
+2014-03-15:10:49:30,Sorrento,86d93f67-0287-4e85-8472-076aa8b9fa42,37.4969347594,-122.174978527
+2014-03-15:10:49:30,Sorrento,7c06751c-f692-473e-9143-9280594a9740,45.1387902196,-117.739092779
+2014-03-15:10:49:30,Sorrento,40e61459-5448-4dc9-bb89-42e73a4e19cf,39.4463417571,-114.736213453
+2014-03-15:10:49:30,Ronin,b13ece99-62ab-4c9f-a366-6a06bd5e877f,38.4282665514,-121.25933863
+2014-03-15:10:49:30,Sorrento,32af1a0b-ca7f-4906-9772-9eb9435e7e4c,33.7778202246,-108.575470704
+2014-03-15:10:49:30,Ronin,a48a5559-d916-481b-84a9-5dce6272cce1,38.2596913494,-122.295712621
+2014-03-15:10:49:30,iFruit,d86fbaa6-b71b-435f-a0bf-5304a202a70b,34.2415255221,-118.23526739
+...
 ```
-
-
-
 
 <Lab3. Use Pair RDDs to Join Two Datasets>
 -------------------------
@@ -511,6 +530,8 @@ defaultdict(<type 'int'>, {128: 9, 2: 7239, 3: 36, 4: 4155, 5: 26, 6: 2162, 7: 1
 > joinRDD2.take(2)
 
 ```
+<span style="color:red"> *some emphasized markdown text*</span>
+
 
 **4. Bonus**
 
