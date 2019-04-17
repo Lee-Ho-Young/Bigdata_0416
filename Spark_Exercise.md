@@ -826,3 +826,70 @@ only showing top 5 rows
 ```
 > finalDF.write.mode("overwrite").save("/loudacre/webpage_files")
 ```
+
+
+<Lab9. Write an Apache Spark Streaming Application>
+-------------------------
+
+**1. Writing a Spark Streaming Application**
+
+/home/training/training_materials/devsh/exercises/spark-streaming/stubs-python/StreamingLogs.py
+```
+mport sys
+from pyspark import SparkContext
+from pyspark.streaming import StreamingContext
+
+# Given an RDD of KB requests, print out the count of elements
+def printRDDcount(rdd): print "Number of KB requests: "+str(rdd.count())
+
+def print5(r, t):
+    print "5 data in the Input Stream @" ,t
+    for temp in r.take(5):
+        print temp
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print >> sys.stderr, "Usage: StreamingLogs.py <hostname> <port>"
+        sys.exit(-1)
+
+    # get hostname and port of data source from application arguments
+    hostname = sys.argv[1]
+    port = int(sys.argv[2])
+
+    # Create a new SparkContext
+    sc = SparkContext()
+
+    # Set log level to ERROR to avoid distracting extra output
+    sc.setLogLevel("ERROR")
+
+   # TODO
+    ssc = StreamingContext(sc,1)
+
+    mystream = ssc.socketTextStream(hostname, port)
+
+    mystream2 = mystream.filter(lambda line: "KBDOC" in line)
+
+    mystream2.pprint(5)
+
+    mystream2.foreachRDD(lambda t,r: printRDDcount(r))
+
+    mystream2.saveAsTextFiles("/loudacre/streamlog/kblogs")
+
+    ssc.start()
+    ssc.awaitTermination()
+```
+
+**2. Web log Generator start**
+
+```
+> cd $DEVSH/exercises/spark-streaming
+> python streamtest.py localhost 1234 20 $DEVDATA/weblogs/*
+```
+
+**3. Testing the Application**
+
+```
+> cd $DEVSH/exercises/spark-streaming
+> spark-submit --master 'local[2]' stubs-python/StreamingLogs.py localhost 1234
+```
