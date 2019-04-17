@@ -536,6 +536,7 @@ defaultdict(<type 'int'>, {128: 9, 2: 7239, 3: 36, 4: 4155, 5: 26, 6: 2162, 7: 1
 **4. Bonus**
 
 
+
 <Lab4. Write and Run an Apache Spark Application>
 -------------------------
 
@@ -610,5 +611,162 @@ if __name__ == "__main__":
 <Lab7. Persist an RDD>
 -------------------------
 
+**1. Predefine script**
 
+```
+# Stub code to paste into the shell
 
+sc.setLogLevel("WARN")
+
+# Count web server log requests by user id
+userReqs = sc.textFile("/loudacre/weblogs/*2.log")\
+  .map(lambda line: line.split()) \
+  .map(lambda words: (words[2],1)) \
+  .reduceByKey(lambda v1,v2: v1+v2)
+
+# Map account data to (userid,"lastname,firstname") pairs
+accounts = sc.textFile("/loudacre/accounts/*")\
+  .map(lambda s: s.split(',')) \
+  .map(lambda values: (values[0],values[4] + ',' + values[3]))
+
+# Join account names with request counts
+accountHits=accounts.join(userReqs)\
+  .map(lambda (userid,values): values)
+```
+
+**2. Explorer the persistence Level**
+
+```
+> accountHits.take(2)
+[(u'Pope,Ricky', 4), (u'Allen,Garrett', 2)]
+
+> accountHits.filter(lambda (firstlast, hitcount): hitcount > 5).count()
+5872
+
+# Because persist is not Action, at this point accountHits RDD does not saved on the memory
+> accountHits.persist()
+
+# accountHits RDD comprised with 23 partitions
+> accountHits.toDebugString()
+'(23) PythonRDD[36] at RDD at PythonRDD.scala:43 []\n |   MapPartitionsRDD[34] at mapPartitions at PythonRDD.scala:374 []\n |   ShuffledRDD[33] at partitionBy at NativeMethodAccessorImpl.java:-2 []\n +-(23) PairwiseRDD[32] at join at <ipython-input-11-19ae9341818a>:12 []\n    |   PythonRDD[31] at join at <ipython-input-11-19ae9341818a>:12 []\n    |   UnionRDD[30] at union at NativeMethodAccessorImpl.java:-2 []\n    |   PythonRDD[28] at RDD at PythonRDD.scala:43 []\n    |   /loudacre/accounts/* MapPartitionsRDD[27] at textFile at NativeMethodAccessorImpl.java:-2 []\n    |   /loudacre/accounts/* HadoopRDD[26] at textFile at NativeMethodAccessorImpl.java:-2 []\n    |   PythonRDD[29] at RDD at PythonRDD.scala:43 []\n    |   MapPartitionsRDD[25] at mapPartitions at PythonRDD.scala:374 []\n    |   ShuffledRDD[24] at partitionBy at NativeMethodAccessorImpl.java:-2 []\n    +-(18) PairwiseRDD[23] at reduceByKey at <ipython-input-11-19ae9341818a>:6 []\n       |   PythonRDD[22] at reduceByKey at <ipython-input-11-19ae9341818a>:6 []\n       |   /loudacre/weblogs/*2.log MapPartitionsRDD[21] at textFile at NativeMethodAccessorImpl.java:-2 []\n       |   /loudacre/weblogs/*2.log HadoopRDD[20] at textFile at NativeMethodAccessorImpl.java:-2 []'
+
+# count, which is an Action operation is submitted, then persist works
+> accountHits.filter(lambda (firstlast, hitcount): hitcount > 5).count()
+
+# You can see the CachedPartitions and the momorySize
+> accountHits.toDebugString()
+'(23) PythonRDD[36] at RDD at PythonRDD.scala:43 [Memory Serialized 1x Replicated]\n |        CachedPartitions: 23; MemorySize: 311.2 KB; ExternalBlockStoreSize: 0.0 B; DiskSize: 0.0 B\n |   MapPartitionsRDD[34] at mapPartitions at PythonRDD.scala:374 [Memory Serialized 1x Replicated]\n |   ShuffledRDD[33] at partitionBy at NativeMethodAccessorImpl.java:-2 [Memory Serialized 1x Replicated]\n +-(23) PairwiseRDD[32] at join at <ipython-input-11-19ae9341818a>:12 [Memory Serialized 1x Replicated]\n    |   PythonRDD[31] at join at <ipython-input-11-19ae9341818a>:12 [Memory Serialized 1x Replicated]\n    |   UnionRDD[30] at union at NativeMethodAccessorImpl.java:-2 [Memory Serialized 1x Replicated]\n    |   PythonRDD[28] at RDD at PythonRDD.scala:43 [Memory Serialized 1x Replicated]\n    |   /loudacre/accounts/* MapPartitionsRDD[27] at textFile at NativeMethodAccessorImpl.java:-2 [Memory Serialized 1x Replicated]\n    |   /loudacre/accounts/* HadoopRDD[26] at textFile at NativeMethodAccessorImpl.java:-2 [Memory Serialized 1x Replicated]\n    |   PythonRDD[29] at RDD at PythonRDD.scala:43 [Memory Serialized 1x Replicated]\n    |   MapPartitionsRDD[25] at mapPartitions at PythonRDD.scala:374 [Memory Serialized 1x Replicated]\n    |   ShuffledRDD[24] at partitionBy at NativeMethodAccessorImpl.java:-2 [Memory Serialized 1x Replicated]\n    +-(18) PairwiseRDD[23] at reduceByKey at <ipython-input-11-19ae9341818a>:6 [Memory Serialized 1x Replicated]\n       |   PythonRDD[22] at reduceByKey at <ipython-input-11-19ae9341818a>:6 [Memory Serialized 1x Replicated]\n       |   /loudacre/weblogs/*2.log MapPartitionsRDD[21] at textFile at NativeMethodAccessorImpl.java:-2 [Memory Serialized 1x Replicated]\n       |   /loudacre/weblogs/*2.log HadoopRDD[20] at textFile at NativeMethodAccessorImpl.java:-2 [Memory Serialized 1x Replicated]'
+
+# If you want to change the Persistence Level, you have to unpersist() first
+> accountHits.unpersist()
+> accountHits.toDebugString()
+'(23) PythonRDD[36] at RDD at PythonRDD.scala:43 []\n |   MapPartitionsRDD[34] at mapPartitions at PythonRDD.scala:374 []\n |   ShuffledRDD[33] at partitionBy at NativeMethodAccessorImpl.java:-2 []\n +-(23) PairwiseRDD[32] at join at <ipython-input-11-19ae9341818a>:12 []\n    |   PythonRDD[31] at join at <ipython-input-11-19ae9341818a>:12 []\n    |   UnionRDD[30] at union at NativeMethodAccessorImpl.java:-2 []\n    |   PythonRDD[28] at RDD at PythonRDD.scala:43 []\n    |   /loudacre/accounts/* MapPartitionsRDD[27] at textFile at NativeMethodAccessorImpl.java:-2 []\n    |   /loudacre/accounts/* HadoopRDD[26] at textFile at NativeMethodAccessorImpl.java:-2 []\n    |   PythonRDD[29] at RDD at PythonRDD.scala:43 []\n    |   MapPartitionsRDD[25] at mapPartitions at PythonRDD.scala:374 []\n    |   ShuffledRDD[24] at partitionBy at NativeMethodAccessorImpl.java:-2 []\n    +-(18) PairwiseRDD[23] at reduceByKey at <ipython-input-11-19ae9341818a>:6 []\n       |   PythonRDD[22] at reduceByKey at <ipython-input-11-19ae9341818a>:6 []\n       |   /loudacre/weblogs/*2.log MapPartitionsRDD[21] at textFile at NativeMethodAccessorImpl.java:-2 []\n       |   /loudacre/weblogs/*2.log HadoopRDD[20] at textFile at NativeMethodAccessorImpl.java:-2 []'
+
+# Change the Persistence Level to save RDD on DISK (Default : Memory only)
+> accountHits.persist(StorageLevel.DISK_ONLY)
+> accountHits.filter(lambda (firstlast, hitcount): hitcount > 5).count()
+> accountHits.toDebugString()
+'(23) PythonRDD[36] at RDD at PythonRDD.scala:43 [Disk Serialized 1x Replicated]\n |        CachedPartitions: 23; MemorySize: 0.0 B; ExternalBlockStoreSize: 0.0 B; DiskSize: 311.2 KB\n |   MapPartitionsRDD[34] at mapPartitions at PythonRDD.scala:374 [Disk Serialized 1x Replicated]\n |   ShuffledRDD[33] at partitionBy at NativeMethodAccessorImpl.java:-2 [Disk Serialized 1x Replicated]\n +-(23) PairwiseRDD[32] at join at <ipython-input-11-19ae9341818a>:12 [Disk Serialized 1x Replicated]\n    |   PythonRDD[31] at join at <ipython-input-11-19ae9341818a>:12 [Disk Serialized 1x Replicated]\n    |   UnionRDD[30] at union at NativeMethodAccessorImpl.java:-2 [Disk Serialized 1x Replicated]\n    |   PythonRDD[28] at RDD at PythonRDD.scala:43 [Disk Serialized 1x Replicated]\n    |   /loudacre/accounts/* MapPartitionsRDD[27] at textFile at NativeMethodAccessorImpl.java:-2 [Disk Serialized 1x Replicated]\n    |   /loudacre/accounts/* HadoopRDD[26] at textFile at NativeMethodAccessorImpl.java:-2 [Disk Serialized 1x Replicated]\n    |   PythonRDD[29] at RDD at PythonRDD.scala:43 [Disk Serialized 1x Replicated]\n    |   MapPartitionsRDD[25] at mapPartitions at PythonRDD.scala:374 [Disk Serialized 1x Replicated]\n    |   ShuffledRDD[24] at partitionBy at NativeMethodAccessorImpl.java:-2 [Disk Serialized 1x Replicated]\n    +-(18) PairwiseRDD[23] at reduceByKey at <ipython-input-11-19ae9341818a>:6 [Disk Serialized 1x Replicated]\n       |   PythonRDD[22] at reduceByKey at <ipython-input-11-19ae9341818a>:6 [Disk Serialized 1x Replicated]\n       |   /loudacre/weblogs/*2.log MapPartitionsRDD[21] at textFile at NativeMethodAccessorImpl.java:-2 [Disk Serialized 1x Replicated]\n       |   /loudacre/weblogs/*2.log HadoopRDD[20] at textFile at NativeMethodAccessorImpl.java:-2 [Disk Serialized 1x Replicated]'
+```
+
+<Lab8. Use Apache Spark SQL for ETL>
+-------------------------
+
+**1. Make DataFrame from dataSource**
+
+```
+> sqlContext
+<pyspark.sql.context.HiveContext at 0x7fd9c0c6d050>
+
+> webpageDF = sqlContext.read.load("/loudacre/webpage")
+> webpageDF.printSchema()
+root
+ |-- web_page_num: integer (nullable = true)
+ |-- web_page_file_name: string (nullable = true)
+ |-- associated_files: string (nullable = true)
+
+> webpageDF.show(5)
++------------+--------------------+--------------------+
+|web_page_num|  web_page_file_name|    associated_files|
++------------+--------------------+--------------------+
+|           1|sorrento_f00l_sal...|theme1.css,code.j...|
+|           2|titanic_2100_sale...|theme3.css,code.j...|
+|           3|meetoo_3.0_sales....|theme3.css,code.j...|
+|           4|meetoo_3.1_sales....|theme.css,code.js...|
+|           5| ifruit_1_sales.html|theme1.css,code.j...|
++------------+--------------------+--------------------+
+only showing top 5 rows
+
+> assocFilesDF = webpageDF.select(webpageDF.web_page_num, webpageDF.associated_files)
+> assocFilesDF.printSchema()
+root
+ |-- web_page_num: integer (nullable = true)
+ |-- associated_files: string (nullable = true)
+
+> assocFilesDF.show(5)
++------------+--------------------+
+|web_page_num|    associated_files|
++------------+--------------------+
+|           1|theme1.css,code.j...|
+|           2|theme3.css,code.j...|
+|           3|theme3.css,code.j...|
+|           4|theme.css,code.js...|
+|           5|theme1.css,code.j...|
++------------+--------------------+
+only showing top 5 rows
+```
+
+**2. Make RDD with DataFrame**
+
+```
+> aFilesRDD = assocFilesDF.map(lambda row: (row.web_page_num, row.associated_files))
+> aFilesRDD2 = aFilesRDD.flatMapValues(lambda filestring: filestring.split(','))
+> aFilesRDD2.take(2)
+[(1, u'theme1.css'), (1, u'code.js')]
+```
+
+**3. Make DataFrame with RDD**
+
+```
+> aFileDF = sqlContext.createDataFrame(aFilesRDD2, assocFilesDF.schema)
+> aFileDF.printSchema()
+root
+ |-- web_page_num: integer (nullable = true)
+ |-- associated_files: string (nullable = true)
+
+> aFileDF.show(5)
++------------+-----------------+
+|web_page_num| associated_files|
++------------+-----------------+
+|           1|       theme1.css|
+|           1|          code.js|
+|           1|sorrento_f00l.jpg|
+|           2|       theme3.css|
+|           2|          code.js|
++------------+-----------------+
+only showing top 5 rows
+
+> finalDF = aFileDF.withColumnRenamed('associated_files', 'associated_file')
+> finalDF.printSchema()
+root
+ |-- web_page_num: integer (nullable = true)
+ |-- associated_file: string (nullable = true)
+ 
+> finalDF.show(5)
++------------+-----------------+
+|web_page_num|  associated_file|
++------------+-----------------+
+|           1|       theme1.css|
+|           1|          code.js|
+|           1|sorrento_f00l.jpg|
+|           2|       theme3.css|
+|           2|          code.js|
++------------+-----------------+
+only showing top 5 rows
+```
+
+**4. Write(Save) DataFrame to File-system**
+
+```
+> finalDF.write.mode("overwrite").save("/loudacre/webpage_files")
+```
