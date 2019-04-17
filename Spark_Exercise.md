@@ -530,12 +530,68 @@ defaultdict(<type 'int'>, {128: 9, 2: 7239, 3: 36, 4: 4155, 5: 26, 6: 2162, 7: 1
 > joinRDD2 = joinRDD1
   .map(lambda (k,(v1,v2)): k + " " + str(v2) + " " + v1.split(",")[3] + " " + v1.split(",")[4])
 > joinRDD2.take(2)
-
+[u'89371 4 Ricky Pope', u'99996 2 Garrett Allen']
 ```
 
 **4. Bonus**
 
+1. Use keyBy to create an RDD of account data with the postal code (9th field in the CSV file) as the key.
+   Tip: Assign this new RDD to a variable for use in the next bonus exercise.
 
+```
+> accountRDD1.take(2)
+[u'1,2008-10-23 16:05:05.0,\\N,Donald,Becton,2275 Washburn Street,Oakland,CA,94660,5100032418,2014-03-18 13:29:47.0,2014-03-18 13:29:47.0',
+ u'2,2008-11-12 03:00:01.0,\\N,Donna,Jones,3885 Elliott Street,San Francisco,CA,94171,4150835799,2014-03-18 13:29:47.0,2014-03-18 13:29:47.0']
+
+> acntRDD1 = accountRDD1.keyBy(lambda line: line.split(',')[8])
+> acntRDD1.take(2)
+[(u'94660',
+  u'1,2008-10-23 16:05:05.0,\\N,Donald,Becton,2275 Washburn Street,Oakland,CA,94660,5100032418,2014-03-18 13:29:47.0,2014-03-18 13:29:47.0'),
+ (u'94171',
+  u'2,2008-11-12 03:00:01.0,\\N,Donna,Jones,3885 Elliott Street,San Francisco,CA,94171,4150835799,2014-03-18 13:29:47.0,2014-03-18 13:29:47.0')]
+```
+
+2. Create a pair RDD with postal code as the key and a list of names (Last Name,First Name) in 
+   that postal code as the value.
+
+```
+> acntRDD2 = acntRDD1.map(lambda (k,v): (k, (v.split(',')[4],v.split(',')[3])))
+> acntRDD2.take(2)
+[(u'94660', (u'Becton', u'Donald')), (u'94171', (u'Jones', u'Donna'))]
+
+# Descending Order : acntRDD3 = acntRDD2.sortByKey(False)
+> acntRDD3 = acntRDD2.sortByKey()
+> acntRDD3.take(10)
+[(u'85000', (u'Allen', u'Harvey')),
+ (u'85000', (u'Prinz', u'Daniel')),
+ (u'85000', (u'Pascale', u'Robert')),
+ (u'85000', (u'Brookes', u'Donna')),
+ (u'85000', (u'Mackenzie', u'James')),
+ (u'85000', (u'Chamberlain', u'Robert')),
+ (u'85000', (u'Cunningham', u'Richard')),
+ (u'85000', (u'Sewell', u'Bailey')),
+ (u'85000', (u'Marin', u'Daniel')),
+ (u'85001', (u'Mendelsohn', u'Frances'))]
+```
+
+3. Sort the data by postal code, then for the first five postal codes, display
+   the code and list the names in that postal zone.
+
+--- 85003
+Jenkins,Thad
+Rick,Edward
+Lindsay,Ivy
+…
+--- 85004
+Morris,Eric
+Reiser,Hazel
+Gregg,Alicia
+Preston,Elizabeth
+…
+   
+```
+
+```
 
 <Lab4. Write and Run an Apache Spark Application>
 -------------------------
