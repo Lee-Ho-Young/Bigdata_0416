@@ -1,193 +1,241 @@
 **통신QM Unit 이호영 선임(09340)**
 
-<Lab2. Process Data Files with Apache Spark>
+<Lab1. Write an Apache Spark Streaming Application>
 -------------------------
-**Parsing XML file with Spark**
 
-**1. Data Repository**
-
-```
-[training@localhost activations]$ cd /home/training/training_materials/data/activations
-[training@localhost activations]$ ll
-total 49632
--rw-r--r-- 1 training training   19044 Nov 14  2016 2008-10.xml
--rw-r--r-- 1 training training   73748 Nov 14  2016 2008-11.xml
--rw-r--r-- 1 training training   68764 Nov 14  2016 2008-12.xml
--rw-r--r-- 1 training training   90337 Nov 14  2016 2009-01.xml
--rw-r--r-- 1 training training   67655 Nov 14  2016 2009-02.xml
--rw-r--r-- 1 training training   86243 Nov 14  2016 2009-03.xml
--rw-r--r-- 1 training training   82718 Nov 14  2016 2009-04.xml
--rw-r--r-- 1 training training   90148 Nov 14  2016 2009-05.xml
--rw-r--r-- 1 training training   88713 Nov 14  2016 2009-06.xml
--rw-r--r-- 1 training training   86835 Nov 14  2016 2009-07.xml
--rw-r--r-- 1 training training   79114 Nov 14  2016 2009-08.xml
--rw-r--r-- 1 training training   83012 Nov 14  2016 2009-09.xml
--rw-r--r-- 1 training training   91007 Nov 14  2016 2009-10.xml
--rw-r--r-- 1 training training   93132 Nov 14  2016 2009-11.xml
--rw-r--r-- 1 training training   96328 Nov 14  2016 2009-12.xml
--rw-r--r-- 1 training training  192394 Nov 14  2016 2010-01.xml
--rw-r--r-- 1 training training  191631 Nov 14  2016 2010-02.xml
--rw-r--r-- 1 training training  200690 Nov 14  2016 2010-03.xml
--rw-r--r-- 1 training training  200510 Nov 14  2016 2010-04.xml
--rw-r--r-- 1 training training  227033 Nov 14  2016 2010-05.xml
--rw-r--r-- 1 training training  235350 Nov 14  2016 2010-06.xml
--rw-r--r-- 1 training training  230267 Nov 14  2016 2010-07.xml
--rw-r--r-- 1 training training  241761 Nov 14  2016 2010-08.xml
--rw-r--r-- 1 training training  234168 Nov 14  2016 2010-09.xml
--rw-r--r-- 1 training training  237083 Nov 14  2016 2010-10.xml
--rw-r--r-- 1 training training  209493 Nov 14  2016 2010-11.xml
--rw-r--r-- 1 training training  235910 Nov 14  2016 2010-12.xml
--rw-r--r-- 1 training training  441580 Nov 14  2016 2011-01.xml
--rw-r--r-- 1 training training  421089 Nov 14  2016 2011-02.xml
--rw-r--r-- 1 training training  472902 Nov 14  2016 2011-03.xml
--rw-r--r-- 1 training training  456871 Nov 14  2016 2011-04.xml
--rw-r--r-- 1 training training  466384 Nov 14  2016 2011-05.xml
--rw-r--r-- 1 training training  454844 Nov 14  2016 2011-06.xml
--rw-r--r-- 1 training training  466854 Nov 14  2016 2011-07.xml
--rw-r--r-- 1 training training  483014 Nov 14  2016 2011-08.xml
--rw-r--r-- 1 training training  464367 Nov 14  2016 2011-09.xml
--rw-r--r-- 1 training training  500909 Nov 14  2016 2011-10.xml
--rw-r--r-- 1 training training  477224 Nov 14  2016 2011-11.xml
--rw-r--r-- 1 training training  506646 Nov 14  2016 2011-12.xml
--rw-r--r-- 1 training training  979534 Nov 14  2016 2012-01.xml
--rw-r--r-- 1 training training  945789 Nov 14  2016 2012-02.xml
--rw-r--r-- 1 training training 1010401 Nov 14  2016 2012-03.xml
--rw-r--r-- 1 training training  994863 Nov 14  2016 2012-04.xml
--rw-r--r-- 1 training training 1005624 Nov 14  2016 2012-05.xml
--rw-r--r-- 1 training training  957156 Nov 14  2016 2012-06.xml
--rw-r--r-- 1 training training 1028510 Nov 14  2016 2012-07.xml
--rw-r--r-- 1 training training 1055421 Nov 14  2016 2012-08.xml
--rw-r--r-- 1 training training 1003936 Nov 14  2016 2012-09.xml
--rw-r--r-- 1 training training 1066257 Nov 14  2016 2012-10.xml
--rw-r--r-- 1 training training 1000719 Nov 14  2016 2012-11.xml
--rw-r--r-- 1 training training 1045239 Nov 14  2016 2012-12.xml
--rw-r--r-- 1 training training 1081374 Nov 14  2016 2013-01.xml
--rw-r--r-- 1 training training  984057 Nov 14  2016 2013-02.xml
--rw-r--r-- 1 training training 1115803 Nov 14  2016 2013-03.xml
--rw-r--r-- 1 training training 1079565 Nov 14  2016 2013-04.xml
--rw-r--r-- 1 training training 1092603 Nov 14  2016 2013-05.xml
--rw-r--r-- 1 training training 1066438 Nov 14  2016 2013-06.xml
--rw-r--r-- 1 training training 1133909 Nov 14  2016 2013-07.xml
--rw-r--r-- 1 training training 1137010 Nov 14  2016 2013-08.xml
--rw-r--r-- 1 training training 1059769 Nov 14  2016 2013-09.xml
--rw-r--r-- 1 training training 1132497 Nov 14  2016 2013-10.xml
--rw-r--r-- 1 training training 6816957 Nov 14  2016 2013-11.xml
--rw-r--r-- 1 training training 3734204 Nov 14  2016 2013-12.xml
--rw-r--r-- 1 training training 3516581 Nov 14  2016 2014-01.xml
--rw-r--r-- 1 training training 2878103 Nov 14  2016 2014-02.xml
--rw-r--r-- 1 training training 1316093 Nov 14  2016 2014-03.xml
-```
-
-**2. Upload files to HDFS**
+**1. Code in python**
 
 ```
-[training@localhost activations]$ hdfs dfs -put $DEVDATA/activations /loudacre/
-[training@localhost activations]$ hdfs dfs -ls /loudacre/activations
-Found 66 items
--rw-rw-rw-   1 training supergroup      19044 2019-04-15 01:49 /loudacre/activations/2008-10.xml
--rw-rw-rw-   1 training supergroup      73748 2019-04-15 01:49 /loudacre/activations/2008-11.xml
--rw-rw-rw-   1 training supergroup      68764 2019-04-15 01:49 /loudacre/activations/2008-12.xml
--rw-rw-rw-   1 training supergroup      90337 2019-04-15 01:49 /loudacre/activations/2009-01.xml
--rw-rw-rw-   1 training supergroup      67655 2019-04-15 01:49 /loudacre/activations/2009-02.xml
--rw-rw-rw-   1 training supergroup      86243 2019-04-15 01:49 /loudacre/activations/2009-03.xml
--rw-rw-rw-   1 training supergroup      82718 2019-04-15 01:49 /loudacre/activations/2009-04.xml
--rw-rw-rw-   1 training supergroup      90148 2019-04-15 01:49 /loudacre/activations/2009-05.xml
--rw-rw-rw-   1 training supergroup      88713 2019-04-15 01:49 /loudacre/activations/2009-06.xml
--rw-rw-rw-   1 training supergroup      86835 2019-04-15 01:49 /loudacre/activations/2009-07.xml
--rw-rw-rw-   1 training supergroup      79114 2019-04-15 01:49 /loudacre/activations/2009-08.xml
--rw-rw-rw-   1 training supergroup      83012 2019-04-15 01:49 /loudacre/activations/2009-09.xml
--rw-rw-rw-   1 training supergroup      91007 2019-04-15 01:49 /loudacre/activations/2009-10.xml
--rw-rw-rw-   1 training supergroup      93132 2019-04-15 01:49 /loudacre/activations/2009-11.xml
--rw-rw-rw-   1 training supergroup      96328 2019-04-15 01:49 /loudacre/activations/2009-12.xml
--rw-rw-rw-   1 training supergroup     192394 2019-04-15 01:49 /loudacre/activations/2010-01.xml
--rw-rw-rw-   1 training supergroup     191631 2019-04-15 01:49 /loudacre/activations/2010-02.xml
--rw-rw-rw-   1 training supergroup     200690 2019-04-15 01:49 /loudacre/activations/2010-03.xml
--rw-rw-rw-   1 training supergroup     200510 2019-04-15 01:49 /loudacre/activations/2010-04.xml
--rw-rw-rw-   1 training supergroup     227033 2019-04-15 01:49 /loudacre/activations/2010-05.xml
--rw-rw-rw-   1 training supergroup     235350 2019-04-15 01:49 /loudacre/activations/2010-06.xml
--rw-rw-rw-   1 training supergroup     230267 2019-04-15 01:49 /loudacre/activations/2010-07.xml
--rw-rw-rw-   1 training supergroup     241761 2019-04-15 01:49 /loudacre/activations/2010-08.xml
--rw-rw-rw-   1 training supergroup     234168 2019-04-15 01:49 /loudacre/activations/2010-09.xml
--rw-rw-rw-   1 training supergroup     237083 2019-04-15 01:49 /loudacre/activations/2010-10.xml
--rw-rw-rw-   1 training supergroup     209493 2019-04-15 01:49 /loudacre/activations/2010-11.xml
--rw-rw-rw-   1 training supergroup     235910 2019-04-15 01:49 /loudacre/activations/2010-12.xml
--rw-rw-rw-   1 training supergroup     441580 2019-04-15 01:49 /loudacre/activations/2011-01.xml
--rw-rw-rw-   1 training supergroup     421089 2019-04-15 01:49 /loudacre/activations/2011-02.xml
--rw-rw-rw-   1 training supergroup     472902 2019-04-15 01:49 /loudacre/activations/2011-03.xml
--rw-rw-rw-   1 training supergroup     456871 2019-04-15 01:49 /loudacre/activations/2011-04.xml
--rw-rw-rw-   1 training supergroup     466384 2019-04-15 01:49 /loudacre/activations/2011-05.xml
--rw-rw-rw-   1 training supergroup     454844 2019-04-15 01:49 /loudacre/activations/2011-06.xml
--rw-rw-rw-   1 training supergroup     466854 2019-04-15 01:49 /loudacre/activations/2011-07.xml
--rw-rw-rw-   1 training supergroup     483014 2019-04-15 01:49 /loudacre/activations/2011-08.xml
--rw-rw-rw-   1 training supergroup     464367 2019-04-15 01:49 /loudacre/activations/2011-09.xml
--rw-rw-rw-   1 training supergroup     500909 2019-04-15 01:49 /loudacre/activations/2011-10.xml
--rw-rw-rw-   1 training supergroup     477224 2019-04-15 01:49 /loudacre/activations/2011-11.xml
--rw-rw-rw-   1 training supergroup     506646 2019-04-15 01:49 /loudacre/activations/2011-12.xml
--rw-rw-rw-   1 training supergroup     979534 2019-04-15 01:49 /loudacre/activations/2012-01.xml
--rw-rw-rw-   1 training supergroup     945789 2019-04-15 01:49 /loudacre/activations/2012-02.xml
--rw-rw-rw-   1 training supergroup    1010401 2019-04-15 01:49 /loudacre/activations/2012-03.xml
--rw-rw-rw-   1 training supergroup     994863 2019-04-15 01:49 /loudacre/activations/2012-04.xml
--rw-rw-rw-   1 training supergroup    1005624 2019-04-15 01:49 /loudacre/activations/2012-05.xml
--rw-rw-rw-   1 training supergroup     957156 2019-04-15 01:49 /loudacre/activations/2012-06.xml
--rw-rw-rw-   1 training supergroup    1028510 2019-04-15 01:49 /loudacre/activations/2012-07.xml
--rw-rw-rw-   1 training supergroup    1055421 2019-04-15 01:49 /loudacre/activations/2012-08.xml
--rw-rw-rw-   1 training supergroup    1003936 2019-04-15 01:49 /loudacre/activations/2012-09.xml
--rw-rw-rw-   1 training supergroup    1066257 2019-04-15 01:49 /loudacre/activations/2012-10.xml
--rw-rw-rw-   1 training supergroup    1000719 2019-04-15 01:49 /loudacre/activations/2012-11.xml
--rw-rw-rw-   1 training supergroup    1045239 2019-04-15 01:49 /loudacre/activations/2012-12.xml
--rw-rw-rw-   1 training supergroup    1081374 2019-04-15 01:49 /loudacre/activations/2013-01.xml
--rw-rw-rw-   1 training supergroup     984057 2019-04-15 01:49 /loudacre/activations/2013-02.xml
--rw-rw-rw-   1 training supergroup    1115803 2019-04-15 01:49 /loudacre/activations/2013-03.xml
--rw-rw-rw-   1 training supergroup    1079565 2019-04-15 01:49 /loudacre/activations/2013-04.xml
--rw-rw-rw-   1 training supergroup    1092603 2019-04-15 01:49 /loudacre/activations/2013-05.xml
--rw-rw-rw-   1 training supergroup    1066438 2019-04-15 01:49 /loudacre/activations/2013-06.xml
--rw-rw-rw-   1 training supergroup    1133909 2019-04-15 01:49 /loudacre/activations/2013-07.xml
--rw-rw-rw-   1 training supergroup    1137010 2019-04-15 01:49 /loudacre/activations/2013-08.xml
--rw-rw-rw-   1 training supergroup    1059769 2019-04-15 01:49 /loudacre/activations/2013-09.xml
--rw-rw-rw-   1 training supergroup    1132497 2019-04-15 01:49 /loudacre/activations/2013-10.xml
--rw-rw-rw-   1 training supergroup    6816957 2019-04-15 01:49 /loudacre/activations/2013-11.xml
--rw-rw-rw-   1 training supergroup    3734204 2019-04-15 01:49 /loudacre/activations/2013-12.xml
--rw-rw-rw-   1 training supergroup    3516581 2019-04-15 01:49 /loudacre/activations/2014-01.xml
--rw-rw-rw-   1 training supergroup    2878103 2019-04-15 01:49 /loudacre/activations/2014-02.xml
--rw-rw-rw-   1 training supergroup    1316093 2019-04-15 01:49 /loudacre/activations/2014-03.xml
+import sys
+from pyspark import SparkContext
+from pyspark.streaming import StreamingContext
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print >> sys.stderr, "Usage: StreamingLogsMB.py <hostname> <port>"
+        sys.exit(-1)
+
+    # get hostname and port of data source from application arguments
+    hostname = sys.argv[1]
+    port = int(sys.argv[2])
+
+    # Create a new SparkContext
+    sc = SparkContext()
+
+    # Set log level to ERROR to avoid distracting extra output
+    sc.setLogLevel("ERROR")
+
+    # Create and configure a new Streaming Context
+    # with a 1 second batch duration
+    ssc = StreamingContext(sc,1)
+
+    # Create a DStream of log data from the server and port specified
+    logs = ssc.socketTextStream(hostname,port)
+
+    # TODO
+
+    # Window
+    logs.pprint()
+    logs.window(4,2).pprint()
+    #logs.countByWindow(5,2).pprint()
+
+    # Checkpoint
+    ssc.checkpoint("logcheckpt")
+
+
+    ssc.start()
+    ssc.awaitTermination()
+
+```
+
+**2. Starting Socket Streaming**
+
+```
+[training@localhost spark-streaming-multi]$ python streamtest.py localhost 12344 1 $DEVDATA/weblogs/*
+```
+
+```
+[training@localhost spark-streaming-multi]$ spark-submit --master 'local[2]' stubs-python/StreamingLogsMB.py localhost 12344
 ```
 
 
-**3. Processing RDD**
+**3. Review the outcomes**
 
 ```
-> rawRDD = sc.wholeTextFiles("/loudacre/activations/")
-> rawRDD1 = rawRDD.flatMapValues(lambda line: getActivations(line))
-> rawRDD1.take(2)
-[(u'hdfs://localhost:8020/loudacre/activations/2008-10.xml',
-  <Element 'activation' at 0x7f72f02e0390>),
- (u'hdfs://localhost:8020/loudacre/activations/2008-10.xml',
-  <Element 'activation' at 0x7f72f02e06d0>)]
-  
-> rawRDD2 = rawRDD1.map(lambda (k, v): (getAccount(v), getModel(v)))
-> rawRDD2.take(2)
-[('9763', 'MeeToo 1.0'), ('426', 'Titanic 1000')]
+-------------------------------------------
+Time: 2019-04-17 17:29:50
+-------------------------------------------
+3.94.78.5 - 69827 [15/Sep/2013:23:58:36 +0100] "GET /KBDOC-00033.html HTTP/1.0" 200 14417 "http://www.loudacre.com"  "Loudacre Mobile Browser iFruit 1"
 
-> rawRDD3 = rawRDD2.map(lambda (k,v): k + ":" + v)
-> rawRDD3.take(2)
-['9763:MeeToo 1.0', '426:Titanic 1000']
+-------------------------------------------
+Time: 2019-04-17 17:29:50
+-------------------------------------------
+3.94.78.5 - 69827 [15/Sep/2013:23:58:36 +0100] "GET /KBDOC-00033.html HTTP/1.0" 200 14417 "http://www.loudacre.com"  "Loudacre Mobile Browser iFruit 1"
 
-> rawRDD3.saveAsTextFile("/loudacre/account-models")
-?? how can I use sortBy / sortByKey
+-------------------------------------------
+Time: 2019-04-17 17:29:51
+-------------------------------------------
+3.94.78.5 - 69827 [15/Sep/2013:23:58:36 +0100] "GET /theme.css HTTP/1.0" 200 3576 "http://www.loudacre.com"  "Loudacre Mobile Browser iFruit 1"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:52
+-------------------------------------------
+19.38.140.62 - 21475 [15/Sep/2013:23:58:34 +0100] "GET /KBDOC-00277.html HTTP/1.0" 200 15517 "http://www.loudacre.com"  "Loudacre Mobile Browser Ronin S1"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:52
+-------------------------------------------
+3.94.78.5 - 69827 [15/Sep/2013:23:58:36 +0100] "GET /KBDOC-00033.html HTTP/1.0" 200 14417 "http://www.loudacre.com"  "Loudacre Mobile Browser iFruit 1"
+3.94.78.5 - 69827 [15/Sep/2013:23:58:36 +0100] "GET /theme.css HTTP/1.0" 200 3576 "http://www.loudacre.com"  "Loudacre Mobile Browser iFruit 1"
+19.38.140.62 - 21475 [15/Sep/2013:23:58:34 +0100] "GET /KBDOC-00277.html HTTP/1.0" 200 15517 "http://www.loudacre.com"  "Loudacre Mobile Browser Ronin S1"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:53
+-------------------------------------------
+19.38.140.62 - 21475 [15/Sep/2013:23:58:34 +0100] "GET /theme.css HTTP/1.0" 200 13353 "http://www.loudacre.com"  "Loudacre Mobile Browser Ronin S1"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:54
+-------------------------------------------
+129.133.56.105 - 2489 [15/Sep/2013:23:58:34 +0100] "GET /KBDOC-00033.html HTTP/1.0" 200 10590 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F00L"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:54
+-------------------------------------------
+3.94.78.5 - 69827 [15/Sep/2013:23:58:36 +0100] "GET /theme.css HTTP/1.0" 200 3576 "http://www.loudacre.com"  "Loudacre Mobile Browser iFruit 1"
+19.38.140.62 - 21475 [15/Sep/2013:23:58:34 +0100] "GET /KBDOC-00277.html HTTP/1.0" 200 15517 "http://www.loudacre.com"  "Loudacre Mobile Browser Ronin S1"
+19.38.140.62 - 21475 [15/Sep/2013:23:58:34 +0100] "GET /theme.css HTTP/1.0" 200 13353 "http://www.loudacre.com"  "Loudacre Mobile Browser Ronin S1"
+129.133.56.105 - 2489 [15/Sep/2013:23:58:34 +0100] "GET /KBDOC-00033.html HTTP/1.0" 200 10590 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F00L"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:55
+-------------------------------------------
+129.133.56.105 - 2489 [15/Sep/2013:23:58:34 +0100] "GET /theme.css HTTP/1.0" 200 12295 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F00L"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:56
+-------------------------------------------
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /ronin_s4_sales.html HTTP/1.0" 200 845 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:56
+-------------------------------------------
+19.38.140.62 - 21475 [15/Sep/2013:23:58:34 +0100] "GET /theme.css HTTP/1.0" 200 13353 "http://www.loudacre.com"  "Loudacre Mobile Browser Ronin S1"
+129.133.56.105 - 2489 [15/Sep/2013:23:58:34 +0100] "GET /KBDOC-00033.html HTTP/1.0" 200 10590 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F00L"
+129.133.56.105 - 2489 [15/Sep/2013:23:58:34 +0100] "GET /theme.css HTTP/1.0" 200 12295 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F00L"
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /ronin_s4_sales.html HTTP/1.0" 200 845 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:57
+-------------------------------------------
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /theme.css HTTP/1.0" 200 738 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:58
+-------------------------------------------
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /code.js HTTP/1.0" 200 938 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:58
+-------------------------------------------
+129.133.56.105 - 2489 [15/Sep/2013:23:58:34 +0100] "GET /theme.css HTTP/1.0" 200 12295 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F00L"
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /ronin_s4_sales.html HTTP/1.0" 200 845 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /theme.css HTTP/1.0" 200 738 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /code.js HTTP/1.0" 200 938 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+
+-------------------------------------------
+Time: 2019-04-17 17:29:59
+-------------------------------------------
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /ronin_s4.jpg HTTP/1.0" 200 5552 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+
+-------------------------------------------
+Time: 2019-04-17 17:30:00
+-------------------------------------------
+209.151.12.34 - 45922 [15/Sep/2013:23:55:09 +0100] "GET /KBDOC-00259.html HTTP/1.0" 200 19362 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F11L"
+
+-------------------------------------------
+Time: 2019-04-17 17:30:00
+-------------------------------------------
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /theme.css HTTP/1.0" 200 738 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /code.js HTTP/1.0" 200 938 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /ronin_s4.jpg HTTP/1.0" 200 5552 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+209.151.12.34 - 45922 [15/Sep/2013:23:55:09 +0100] "GET /KBDOC-00259.html HTTP/1.0" 200 19362 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F11L"
+
+-------------------------------------------
+Time: 2019-04-17 17:30:01
+-------------------------------------------
+209.151.12.34 - 45922 [15/Sep/2013:23:55:09 +0100] "GET /theme.css HTTP/1.0" 200 17795 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F11L"
+
+-------------------------------------------
+Time: 2019-04-17 17:30:02
+-------------------------------------------
+184.97.84.245 - 144 [15/Sep/2013:23:54:55 +0100] "GET /KBDOC-00052.html HTTP/1.0" 200 12499 "http://www.loudacre.com"  "Loudacre CSR Browser"
+
+-------------------------------------------
+Time: 2019-04-17 17:30:02
+-------------------------------------------
+217.150.149.167 - 4712 [15/Sep/2013:23:56:06 +0100] "GET /ronin_s4.jpg HTTP/1.0" 200 5552 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 1.0"
+209.151.12.34 - 45922 [15/Sep/2013:23:55:09 +0100] "GET /KBDOC-00259.html HTTP/1.0" 200 19362 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F11L"
+209.151.12.34 - 45922 [15/Sep/2013:23:55:09 +0100] "GET /theme.css HTTP/1.0" 200 17795 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F11L"
+184.97.84.245 - 144 [15/Sep/2013:23:54:55 +0100] "GET /KBDOC-00052.html HTTP/1.0" 200 12499 "http://www.loudacre.com"  "Loudacre CSR Browser"
+
+-------------------------------------------
+Time: 2019-04-17 17:30:03
+-------------------------------------------
+184.97.84.245 - 144 [15/Sep/2013:23:54:55 +0100] "GET /theme.css HTTP/1.0" 200 4979 "http://www.loudacre.com"  "Loudacre CSR Browser"
+
+-------------------------------------------
+Time: 2019-04-17 17:30:04
+-------------------------------------------
+233.60.251.2 - 33908 [15/Sep/2013:23:51:43 +0100] "GET /KBDOC-00292.html HTTP/1.0" 200 4779 "http://www.loudacre.com"  "Loudacre Mobile Browser Ronin S2"
+
+-------------------------------------------
+Time: 2019-04-17 17:30:04
+-------------------------------------------
+209.151.12.34 - 45922 [15/Sep/2013:23:55:09 +0100] "GET /theme.css HTTP/1.0" 200 17795 "http://www.loudacre.com"  "Loudacre Mobile Browser Sorrento F11L"
+184.97.84.245 - 144 [15/Sep/2013:23:54:55 +0100] "GET /KBDOC-00052.html HTTP/1.0" 200 12499 "http://www.loudacre.com"  "Loudacre CSR Browser"
+184.97.84.245 - 144 [15/Sep/2013:23:54:55 +0100] "GET /theme.css HTTP/1.0" 200 4979 "http://www.loudacre.com"  "Loudacre CSR Browser"
+233.60.251.2 - 33908 [15/Sep/2013:23:51:43 +0100] "GET /KBDOC-00292.html HTTP/1.0" 200 4779 "http://www.loudacre.com"  "Loudacre Mobile Browser Ronin S2"
+
+-------------------------------------------
+Time: 2019-04-17 17:30:05
+-------------------------------------------
+233.60.251.2 - 33908 [15/Sep/2013:23:51:43 +0100] "GET /theme.css HTTP/1.0" 200 15871 "http://www.loudacre.com"  "Loudacre Mobile Browser Ronin S2"
+
+-------------------------------------------
+Time: 2019-04-17 17:30:06
+-------------------------------------------
+160.134.139.204 - 51340 [15/Sep/2013:23:50:11 +0100] "GET /KBDOC-00016.html HTTP/1.0" 200 1156 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 3.0"
+
+-------------------------------------------
+Time: 2019-04-17 17:30:06
+-------------------------------------------
+184.97.84.245 - 144 [15/Sep/2013:23:54:55 +0100] "GET /theme.css HTTP/1.0" 200 4979 "http://www.loudacre.com"  "Loudacre CSR Browser"
+233.60.251.2 - 33908 [15/Sep/2013:23:51:43 +0100] "GET /KBDOC-00292.html HTTP/1.0" 200 4779 "http://www.loudacre.com"  "Loudacre Mobile Browser Ronin S2"
+233.60.251.2 - 33908 [15/Sep/2013:23:51:43 +0100] "GET /theme.css HTTP/1.0" 200 15871 "http://www.loudacre.com"  "Loudacre Mobile Browser Ronin S2"
+160.134.139.204 - 51340 [15/Sep/2013:23:50:11 +0100] "GET /KBDOC-00016.html HTTP/1.0" 200 1156 "http://www.loudacre.com"  "Loudacre Mobile Browser MeeToo 3.0"
 ```
 
-**3. Bonus**
-```diff
-- Important Exercise
-```
-A. Upload the devicestatus.txt file to HDFS.
 
-```
-[training@localhost data]$ hdfs dfs -put devicestatus.txt /loudacre/device/
-[training@localhost data]$ hdfs dfs -ls /loudacre/device
-Found 1 items
--rw-rw-rw-   1 training supergroup   13954723 2019-04-15 20:58 /loudacre/device/devicestatus.txt
-```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 B. Determine which delimiter to use (hint: the character at
 position 19 is the first use of the delimiter).
